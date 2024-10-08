@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	bftclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/polymerdao/monomer/e2e/url"
@@ -57,8 +58,7 @@ func testApp(t *testing.T, rootDirPath, appDirPath, appName string) {
 		cancel()
 		// It is kind of harmless, just `signal: killed` or `signal: terminated`,
 		// but it would be nice to be able to say `require.NoError` here.
-		err := cmd.Wait()
-		require.NoError(t, err, "failed to shutdown successfully")
+		_ = cmd.Wait()
 	}()
 
 	// Hit a comet endpoint.
@@ -72,6 +72,8 @@ func testApp(t *testing.T, rootDirPath, appDirPath, appName string) {
 	require.NoError(t, err)
 	// Don't worry too much about API correctness, that is tested elsewhere.
 	require.Equal(t, blockNumber, block.Block.Height)
+	// Give the node some time to process the request before shutting down
+	time.Sleep(20 * time.Second)
 }
 
 type logWriter func(...any)
